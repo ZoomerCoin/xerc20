@@ -1,66 +1,32 @@
-## Foundry
+# ZOOMER xERC20
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+## What is ZOOMER xERC20?
+[$ZOOMER](https://zoomer.money) is the most bussin coin in existence fr fr. The based ZOOMER devs have decided to make ZOOMER an [xERC20](https://ethereum-magicians.org/t/erc-7281-sovereign-bridged-tokens/14979) token, embracing the open standard for cross-chain ERC20 tokens.
 
-Foundry consists of:
+This repo is the home of the ZOOMER xERC20 contracts which illustrate how to implement the xERC20 standard and deploy it in an upgradable way to allow for future updates to the standard before it is finalized.
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
-
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
+## Testing
+To run the tests, first install the dependencies:
+```
+npm install
 ```
 
-### Test
-
-```shell
-$ forge test
+Then run the tests:
+```
+npm test
 ```
 
-### Format
+Tests for the contract functionality are written in Forge, and the upgrade tests are written in Hardhat. 
 
-```shell
-$ forge fmt
+## Deploying
+To deploy the contracts, first install the dependencies:
+```
+npm install
 ```
 
-### Gas Snapshots
-
-```shell
-$ forge snapshot
+Then run the deployment script (example for Arbitrum):
+```
+npx hardhat run scripts/deploy.ts --network arbitrum
 ```
 
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+Note this is a minimal repo and configs need to be added for other networks. See the [Hardhat docs](https://hardhat.org/config/) for more info.

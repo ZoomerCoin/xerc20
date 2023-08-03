@@ -1,14 +1,17 @@
 import { ethers, upgrades } from "hardhat";
 
+const ownerAddress = "0x00000000000000000000000000000000deadbeef";
+
 async function main() {
   // Deploying
-  const Box = await ethers.getContractFactory("Box");
-  const instance = await upgrades.deployProxy(Box, [42]);
-  await instance.waitForDeployment();
-
-  // Upgrading
-  const BoxV2 = await ethers.getContractFactory("BoxV2");
-  const upgraded = await upgrades.upgradeProxy(await instance.getAddress(), BoxV2);
+  const XZoomerCoin = await ethers.getContractFactory("XZoomerCoin");
+  const xzoomer = await upgrades.deployProxy(XZoomerCoin, [
+    ownerAddress,
+    "XZoomerCoin",
+    "ZOOMER",
+  ]);
+  await xzoomer.waitForDeployment();
+  console.log("XZoomerCoin deployed to:", await xzoomer.getAddress());
 }
 
 main();
