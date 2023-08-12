@@ -2,30 +2,31 @@
 pragma solidity ^0.8.19;
 
 import {PausableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/security/PausableUpgradeable.sol";
+import {IXERC20} from "xtokens/interfaces/IXERC20.sol";
 
 import {ProposedOwnableUpgradeable} from "./ownership/ProposedOwnableUpgradeable.sol";
 
-interface IZoomer {
-    function mint(address _to, uint256 _amount) external;
-    function burn(address _from, uint256 _amount) external;
-}
-
 interface IOVML2CrossDomainMessenger {
     function xDomainMessageSender() external view returns (address);
+    function sendMessage(address _target, bytes memory _message, uint32 _gasLimit) external;
 }
 
 contract OpL2XERC20Bridge is ProposedOwnableUpgradeable, PausableUpgradeable {
-    IZoomer public zoomer;
+    IXERC20 public zoomer;
     IOVML2CrossDomainMessenger public constant OVM_L2_CROSS_DOMAIN_MESSENGER =
         IOVML2CrossDomainMessenger(0x4200000000000000000000000000000000000007);
     address public l1Contract;
 
+    event MessageSent(address indexed _from, address indexed _to, uint256 _amount);
     event MessageReceived(address indexed _from, address indexed _to, uint256 _amount);
 
     error WrongSourceContract(address _l1Contract);
+    error NotBridge(address _sender);
 
     modifier onlyBridge() {
-        require(msg.sender == address(OVM_L2_CROSS_DOMAIN_MESSENGER));
+        if (msg.sender != address(OVM_L2_CROSS_DOMAIN_MESSENGER)) {
+            revert NotBridge(msg.sender);
+        }
         _;
     }
 
@@ -34,16 +35,26 @@ contract OpL2XERC20Bridge is ProposedOwnableUpgradeable, PausableUpgradeable {
         __Pausable_init();
 
         _setOwner(_owner);
-        zoomer = IZoomer(_zoomer);
+        zoomer = IXERC20(_zoomer);
         l1Contract = _l1Contract;
     }
 
-    function mintFromL1(address _from, address _to, uint256 _amount) external onlyBridge whenNotPaused {
-        if (OVM_L2_CROSS_DOMAIN_MESSENGER.xDomainMessageSender() == l1Contract) {
+    function mintFromL1(address _from, address _to, uint256 _amount) external whenNotPaused onlyBridge {
+        if (OVM_L2_CROSS_DOMAIN_MESSENGER.xDomainMessageSender() != l1Contract) {
             revert WrongSourceContract(OVM_L2_CROSS_DOMAIN_MESSENGER.xDomainMessageSender());
         }
-        emit MessageReceived(_from, _to, _amount);
         zoomer.mint(_to, _amount);
+        emit MessageReceived(_from, _to, _amount);
+    }
+
+    function burnAndBridgeToL1(address _to, uint256 _amount) external whenNotPaused {
+        zoomer.burn(msg.sender, _amount);
+        OVM_L2_CROSS_DOMAIN_MESSENGER.sendMessage(
+            l1Contract,
+            abi.encodeWithSignature("mintFromL2(address,address,uint256)", msg.sender, _to, _amount),
+            1000000
+        );
+        emit MessageSent(msg.sender, _to, _amount);
     }
 
     function pause() external onlyOwner {

@@ -17,6 +17,7 @@ contract OpL1XERC20Bridge is ProposedOwnableUpgradeable, PausableUpgradeable {
     IOVML1CrossDomainMessenger public l1CrossDomainMessenger;
     address public l2Contract;
 
+    event MessageSent(address indexed _from, address indexed _to, uint256 _amount);
     event MessageReceived(address indexed _from, address indexed _to, uint256 _amount);
 
     error WrongSourceContract(address _sourceContract);
@@ -49,14 +50,15 @@ contract OpL1XERC20Bridge is ProposedOwnableUpgradeable, PausableUpgradeable {
             abi.encodeWithSignature("mintFromL1(address,address,uint256)", msg.sender, _to, _amount),
             1000000
         );
+        emit MessageSent(msg.sender, _to, _amount);
     }
 
     function mintFromL2(address _from, address _to, uint256 _amount) external whenNotPaused onlyBridge {
         if (l1CrossDomainMessenger.xDomainMessageSender() != l2Contract) {
             revert WrongSourceContract(l1CrossDomainMessenger.xDomainMessageSender());
         }
-        emit MessageReceived(_from, _to, _amount);
         zoomer.mint(_to, _amount);
+        emit MessageReceived(_from, _to, _amount);
     }
 
     function pause() external onlyOwner {
