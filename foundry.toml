@@ -8,5 +8,6 @@ remappings = [
   "forge-std=lib/forge-std/src/",
   "solmate=lib/solmate/src/",
   "openzeppelin=lib/openzeppelin-contracts/",
-  "openzeppelin-contracts-upgradeable=lib/openzeppelin-contracts-upgradeable/"
+  "openzeppelin-contracts-upgradeable=lib/openzeppelin-contracts-upgradeable/",
+  "xtokens=lib/xTokens/solidity/"
 ]
