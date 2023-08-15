@@ -6,8 +6,9 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IXERC20Lockbox} from "interfaces/IXERC20Lockbox.sol";
 import {Initializable} from "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
+import {MulticallUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/utils/MulticallUpgradeable.sol";
 
-contract XERC20Lockbox is Initializable, IXERC20Lockbox {
+contract XERC20Lockbox is Initializable, MulticallUpgradeable, IXERC20Lockbox {
     using SafeERC20 for IERC20;
 
     /**
@@ -34,6 +35,7 @@ contract XERC20Lockbox is Initializable, IXERC20Lockbox {
      */
 
     function initialize(address _xerc20, address _erc20, bool _isNative) public initializer {
+        __Multicall_init();
         XERC20 = IXERC20(_xerc20);
         ERC20 = IERC20(_erc20);
         IS_NATIVE = _isNative;
