@@ -30,12 +30,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       proxy: {
         proxyContract: "OpenZeppelinTransparentProxy",
         execute: {
-          methodName: "initialize",
-          args: [
-            deployer.address,
-            xerc20.address,
-            l1CrossDomainMessengerAddresses[network.chainId.toString()],
-          ],
+          init: {
+            methodName: "initialize",
+            args: [
+              deployer.address,
+              xerc20.address,
+              l1CrossDomainMessengerAddresses[network.chainId.toString()],
+            ],
+          },
         },
       },
       log: true,
@@ -55,9 +57,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       from: deployer.address,
       proxy: {
         proxyContract: "OpenZeppelinTransparentProxy",
+
         execute: {
-          methodName: "initialize",
-          args: [deployer.address, xerc20.address],
+          init: {
+            methodName: "initialize",
+            args: [deployer.address, xerc20.address],
+          },
         },
       },
       log: true,
@@ -73,11 +78,24 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   if (bridgeAddress) {
     console.log("Setting limits...");
-    const _xerc20 = await ethers.getContractAt("src/XERC20.sol:XERC20", xerc20.address);
-    const res = await _xerc20.setLimits(bridgeAddress, MaxUint256, MaxUint256);
-    console.log("setLimits tx: ", res.hash);
-    await res.wait();
-    console.log("setLimits done");
+    const _xerc20 = await ethers.getContractAt(
+      "src/XERC20.sol:XERC20",
+      xerc20.address
+    );
+    const mintLimit = await _xerc20.mintingMaxLimitOf(bridgeAddress);
+    console.log("mintLimit: ", mintLimit);
+    const burnLimit = await _xerc20.burningMaxLimitOf(bridgeAddress);
+    console.log("burnLimit: ", burnLimit);
+    if (mintLimit != MaxUint256 || burnLimit != MaxUint256) {
+      const res = await _xerc20.setLimits(
+        bridgeAddress,
+        MaxUint256,
+        MaxUint256
+      );
+      console.log("setLimits tx: ", res.hash);
+      await res.wait();
+      console.log("setLimits done");
+    }
   }
 };
 export default func;

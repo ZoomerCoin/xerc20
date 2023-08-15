@@ -18,14 +18,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     proxy: {
       proxyContract: "OpenZeppelinTransparentProxy",
       execute: {
-        methodName: "initialize",
-        args: [
-          [8453n, 84531n].includes(network.chainId)
-            ? "BasedZoomerCoin"
-            : "ZoomerCoin",
-          "ZOOMER",
-          deployer.address,
-        ],
+        init: {
+          methodName: "initialize",
+          args: [
+            [8453n, 84531n].includes(network.chainId)
+              ? "BasedZoomerCoin"
+              : "ZoomerCoin",
+            "ZOOMER",
+            deployer.address,
+          ],
+        },
       },
     },
     log: true,
@@ -42,26 +44,31 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log("xerc20.totalSupply: ", await xerc20.totalSupply());
 
   if (["1", "5"].includes(chainId)) {
-    const xerc20LockboxRes = await deploy("XERC20Lockbox", {      
+    const xerc20LockboxRes = await deploy("XERC20Lockbox", {
       contract: "src/XERC20Lockbox.sol:XERC20Lockbox",
       from: deployer.address,
       proxy: {
         proxyContract: "OpenZeppelinTransparentProxy",
         execute: {
-          methodName: "initialize",
-          args: [
-            xerc20Res.address,
-            chainId === "1"
-              ? "0x0D505C03d30e65f6e9b4Ef88855a47a89e4b7676"
-              : "0x7ea6eA49B0b0Ae9c5db7907d139D9Cd3439862a1",
-            false,
-          ],
+          init: {
+            methodName: "initialize",
+            args: [
+              xerc20Res.address,
+              chainId === "1"
+                ? "0x0D505C03d30e65f6e9b4Ef88855a47a89e4b7676"
+                : "0x7ea6eA49B0b0Ae9c5db7907d139D9Cd3439862a1",
+              false,
+            ],
+          },
         },
       },
       log: true,
     });
-    console.log('xerc20LockboxRes: ', xerc20LockboxRes.address);
-    console.log('xerc20LockboxRes.transactionHash: ', xerc20LockboxRes.transactionHash);
+    console.log("xerc20LockboxRes: ", xerc20LockboxRes.address);
+    console.log(
+      "xerc20LockboxRes.transactionHash: ",
+      xerc20LockboxRes.transactionHash
+    );
   }
 };
 export default func;
