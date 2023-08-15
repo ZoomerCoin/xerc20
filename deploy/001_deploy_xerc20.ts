@@ -69,6 +69,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       "xerc20LockboxRes.transactionHash: ",
       xerc20LockboxRes.transactionHash
     );
+
+    const lockbox = await xerc20.lockbox();
+    console.log("lockbox: ", lockbox);
+    if (lockbox !== xerc20LockboxRes.address) {
+      await xerc20.setLockbox(xerc20LockboxRes.address);
+    }
   }
 };
 export default func;

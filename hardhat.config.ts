@@ -20,6 +20,19 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
+    mainnet: {
+      url: "https://eth.llamarpc.com",
+      accounts: [process.env.PRIVATE_KEY || ""],
+    },
+    base: {
+      url: "https://mainnet.base.org",
+      accounts: [process.env.PRIVATE_KEY || ""],
+      verify: {
+        etherscan: {
+          apiUrl: "https://api.basescan.org",
+        },
+      },
+    },
     goerli: {
       url: "https://rpc.ankr.com/eth_goerli",
       accounts: [process.env.PRIVATE_KEY || ""],
