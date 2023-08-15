@@ -30,12 +30,15 @@ contract OpL2XERC20Bridge is ProposedOwnableUpgradeable, PausableUpgradeable {
         _;
     }
 
-    function initialize(address _owner, address _zoomer, address _l1Contract) public initializer {
+    function initialize(address _owner, address _zoomer) public initializer {
         __ProposedOwnable_init();
         __Pausable_init();
 
         _setOwner(_owner);
         zoomer = IXERC20(_zoomer);
+    }
+
+    function setL1Contract(address _l1Contract) external onlyOwner {
         l1Contract = _l1Contract;
     }
 

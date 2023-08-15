@@ -23,7 +23,8 @@ contract OpL1XERC20BridgeTest is Test {
             factory.deployXERC20("ZoomerCoin", "ZOOMER", new uint256[](0), new uint256[](0), new address[](0));
         xzoomer = XERC20(_xzoomer);
         bridge = new OpL1XERC20Bridge();
-        bridge.initialize(OWNER, _xzoomer, L1CROSSDOMAINMESSENGER, L2CONTRACT);
+        bridge.initialize(OWNER, _xzoomer, L1CROSSDOMAINMESSENGER);
+        bridge.setL2Contract(L2CONTRACT);
         xzoomer.setLimits(address(bridge), type(uint256).max, type(uint256).max);
         xzoomer.setLimits(MINTER, type(uint256).max, type(uint256).max);
         vm.prank(MINTER);
