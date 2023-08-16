@@ -46,6 +46,10 @@ contract OpL1XERC20Bridge is ProposedOwnableUpgradeable, PausableUpgradeable {
         l2Contract = _l2Contract;
     }
 
+    function setZoomer(address _zoomer) external onlyOwner {
+        zoomer = IXERC20(_zoomer);
+    }
+
     function burnAndBridgeToL2(address _to, uint256 _amount) external whenNotPaused {
         zoomer.burn(msg.sender, _amount);
         l1CrossDomainMessenger.sendMessage(

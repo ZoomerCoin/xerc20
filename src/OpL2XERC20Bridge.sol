@@ -42,6 +42,10 @@ contract OpL2XERC20Bridge is ProposedOwnableUpgradeable, PausableUpgradeable {
         l1Contract = _l1Contract;
     }
 
+    function setZoomer(address _zoomer) external onlyOwner {
+        zoomer = IXERC20(_zoomer);
+    }
+
     function mintFromL1(address _from, address _to, uint256 _amount) external whenNotPaused onlyBridge {
         if (OVM_L2_CROSS_DOMAIN_MESSENGER.xDomainMessageSender() != l1Contract) {
             revert WrongSourceContract(OVM_L2_CROSS_DOMAIN_MESSENGER.xDomainMessageSender());

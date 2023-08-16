@@ -22,9 +22,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           methodName: "initialize",
           args: [
             [8453n, 84531n].includes(network.chainId)
-              ? "BasedZoomerCoin"
-              : "ZoomerCoin",
-            "ZOOMER",
+              ? "Based ZoomerCoin"
+              : "Wrapped ZoomerCoin",
+            [8453n, 84531n].includes(network.chainId) ? "ZOOMER" : "WZOOMER",
             deployer.address,
           ],
         },

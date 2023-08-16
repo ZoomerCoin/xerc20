@@ -8,6 +8,10 @@ import {IXERC20Lockbox} from "interfaces/IXERC20Lockbox.sol";
 import {Initializable} from "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
 import {MulticallUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/utils/MulticallUpgradeable.sol";
 
+interface OpL1XERC20Bridge {
+    function burnAndBridgeToL2(address _to, uint256 _amount) external;
+}
+
 contract XERC20Lockbox is Initializable, MulticallUpgradeable, IXERC20Lockbox {
     using SafeERC20 for IERC20;
 
@@ -27,6 +31,16 @@ contract XERC20Lockbox is Initializable, MulticallUpgradeable, IXERC20Lockbox {
 
     bool public IS_NATIVE;
 
+    // post upgrade 1
+    address public OWNER;
+
+    OpL1XERC20Bridge public OpL1XERC20BRIDGE;
+
+    modifier onlyOwner() {
+        require(msg.sender == 0xFaDede2cFbfA7443497acacf76cFc4Fe59112DbB, "XERC20Lockbox: not owner");
+        _;
+    }
+
     /**
      * @notice Constructor
      *
@@ -39,6 +53,10 @@ contract XERC20Lockbox is Initializable, MulticallUpgradeable, IXERC20Lockbox {
         XERC20 = IXERC20(_xerc20);
         ERC20 = IERC20(_erc20);
         IS_NATIVE = _isNative;
+    }
+
+    function setOpL1XERC20Bridge(address _opL1XERC20Bridge) external onlyOwner {
+        OpL1XERC20BRIDGE = OpL1XERC20Bridge(_opL1XERC20Bridge);
     }
 
     /**
@@ -63,6 +81,16 @@ contract XERC20Lockbox is Initializable, MulticallUpgradeable, IXERC20Lockbox {
 
         ERC20.safeTransferFrom(msg.sender, address(this), _amount);
         XERC20.mint(msg.sender, _amount);
+
+        emit Deposit(msg.sender, _amount);
+    }
+
+    function depositAndBridgeToL2(uint256 _amount) external {
+        if (IS_NATIVE) revert IXERC20Lockbox_Native();
+
+        ERC20.safeTransferFrom(msg.sender, address(this), _amount);
+        XERC20.mint(address(this), _amount);
+        OpL1XERC20BRIDGE.burnAndBridgeToL2(msg.sender, _amount);
 
         emit Deposit(msg.sender, _amount);
     }

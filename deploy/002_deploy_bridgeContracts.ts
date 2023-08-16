@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { MaxUint256, ZeroAddress } from "ethers";
+import { XERC20Lockbox } from "../typechain-types";
 
 const l1CrossDomainMessengerAddresses: Record<string, string> = {
   "1": "0x866E82a600A1414e583f7F13623F1aC5d58b0Afa",
@@ -26,6 +27,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   if ([1n, 5n].includes(network.chainId)) {
     console.log("Deploying L1 side...");
     const opBridgeRes = await deploy("OpL1XERC20Bridge", {
+      contract: "src/OpL1XERC20Bridge.sol:OpL1XERC20Bridge",
       from: deployer.address,
       proxy: {
         proxyContract: "OpenZeppelinTransparentProxy",
@@ -44,11 +46,28 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     });
     console.log("opBridge L1 deployed to:", opBridgeRes.address);
     const opBridge = await ethers.getContractAt(
-      "OpL1XERC20Bridge",
+      "src/OpL1XERC20Bridge.sol:OpL1XERC20Bridge",
       opBridgeRes.address
     );
     console.log("opBridge L1 zoomer: ", await opBridge.zoomer());
     bridgeAddress = opBridgeRes.address;
+
+    const lockbox: XERC20Lockbox = await ethers.getContract("XERC20Lockbox");
+    const bridge = await lockbox.OpL1XERC20BRIDGE();
+    if (bridge !== bridgeAddress) {
+      const res = await lockbox.setOpL1XERC20Bridge(bridgeAddress);
+      console.log("setOpL1XERC20BRIDGE tx: ", res.hash);
+      await res.wait();
+      console.log("setOpL1XERC20BRIDGE done");
+    }
+
+    const _xerc20 = await opBridge.zoomer();
+    if (_xerc20 !== xerc20.address) {
+      const res = await opBridge.setZoomer(xerc20.address);
+      console.log("setZoomer tx: ", res.hash);
+      await res.wait();
+      console.log("setZoomer done");
+    }
   }
 
   if ([8453n, 84531n].includes(network.chainId)) {
@@ -74,6 +93,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     );
     console.log("opBridge L2 zoomer: ", await opBridge.zoomer());
     bridgeAddress = opBridgeRes.address;
+
+    const _xerc20 = await opBridge.zoomer();
+    if (_xerc20 !== xerc20.address) {
+      const res = await opBridge.setZoomer(xerc20.address);
+      console.log("setZoomer tx: ", res.hash);
+      await res.wait();
+      console.log("setZoomer done");
+    }
   }
 
   if (bridgeAddress) {
@@ -82,15 +109,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       "src/XERC20.sol:XERC20",
       xerc20.address
     );
+    const maxSupply = 69000000000000000000000000000n;
     const mintLimit = await _xerc20.mintingMaxLimitOf(bridgeAddress);
     console.log("mintLimit: ", mintLimit);
     const burnLimit = await _xerc20.burningMaxLimitOf(bridgeAddress);
     console.log("burnLimit: ", burnLimit);
-    if (mintLimit != MaxUint256 || burnLimit != MaxUint256) {
+    if (mintLimit != maxSupply || burnLimit != maxSupply) {
       const res = await _xerc20.setLimits(
         bridgeAddress,
-        MaxUint256,
-        MaxUint256
+        maxSupply,
+        maxSupply
       );
       console.log("setLimits tx: ", res.hash);
       await res.wait();
